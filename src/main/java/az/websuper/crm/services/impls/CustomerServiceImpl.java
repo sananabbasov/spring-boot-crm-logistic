@@ -73,17 +73,51 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public ApiResponse updateCustomer(Long id, CustomerUpdateDto customerUpdateDto) {
+    public ApiResponse updateCustomer(String userEmail, Long id, CustomerUpdateDto customerUpdateDto) {
         try {
             Customer findCustomer = customerRepository.findById(id).orElseThrow();
-
+            User findUserCompany = userRepository.findByEmail(userEmail);
+            if (!findUserCompany.getCompany().getName().equals(findCustomer.getCompany().getName())){
+                return new ApiResponse("Siz bu istifadecini yenileye bilmezsiz",false);
+            }
             findCustomer.setName(customerUpdateDto.getName());
             findCustomer.setEmail(customerUpdateDto.getEmail());
             findCustomer.setLastname(customerUpdateDto.getLastname());
             customerRepository.save(findCustomer);
             return new ApiResponse("Elave olundu",true);
         }catch (Exception e){
-            return new ApiResponse(e.getMessage(),true);
+            return new ApiResponse(e.getMessage(),false);
+        }
+    }
+
+    @Override
+    public CustomerUpdateDto getUpdateCustomer(String userEmail, Long id) {
+        try {
+            Customer findCustomer = customerRepository.findById(id).orElseThrow();
+            User findUserCompany = userRepository.findByEmail(userEmail);
+            if (!findUserCompany.getCompany().getName().equals(findCustomer.getCompany().getName())){
+                return null;
+            }
+            CustomerUpdateDto result = modelMapper.map(findCustomer, CustomerUpdateDto.class);
+            return result;
+        }catch (Exception e){
+            return null;
+        }
+    }
+
+    @Override
+    public ApiResponse removeCustomer(String userEmail, Long id) {
+        try{
+            Customer findCustomer = customerRepository.findById(id).orElseThrow();
+            User findUserCompany = userRepository.findByEmail(userEmail);
+            if (!findUserCompany.getCompany().getName().equals(findCustomer.getCompany().getName())){
+                return new ApiResponse("Siz bu istifadecini yenileye bilmezsiz",false);
+            }
+            findCustomer.setDeleted(true);
+            customerRepository.save(findCustomer);
+            return new ApiResponse("Musteri silindi",true);
+        }catch (Exception e){
+            return new ApiResponse(e.getMessage(),false);
         }
     }
 }

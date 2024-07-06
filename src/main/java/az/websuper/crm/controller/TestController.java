@@ -14,7 +14,7 @@ import java.security.Principal;
 public class TestController {
 
     @GetMapping("/test")
-    @PreAuthorize("hasAnyAuthority('ADMIN','USER')")
+    @PreAuthorize("hasAnyAuthority('TEST','TESTS')")
     public String test(Principal principal){
         String user = principal.getName();
 

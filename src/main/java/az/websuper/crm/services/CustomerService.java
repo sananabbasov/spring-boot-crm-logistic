@@ -11,7 +11,7 @@ import java.security.Principal;
 public interface CustomerService {
     PaginationPayload<CustomerDto> getCustomers(Integer pageNumber, Integer pageSize, String sortBy, Principal principal);
     ApiResponse createCustomer(String userEmail, CustomerCreateDto customerCreateDto);
-    ApiResponse updateCustomer(Long id, CustomerUpdateDto customerUpdateDto);
-
-
+    ApiResponse updateCustomer(String userEmail, Long id, CustomerUpdateDto customerUpdateDto);
+    CustomerUpdateDto getUpdateCustomer(String userEmail, Long id);
+    ApiResponse removeCustomer(String userEmail, Long id);
 }
