@@ -1,6 +1,7 @@
 package az.websuper.crm.models;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 @Entity
 @Table(name = "users")
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 public class User implements UserDetails {
@@ -47,6 +49,7 @@ public class User implements UserDetails {
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(name = "user_transport", joinColumns = @JoinColumn(name = "users", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "transports", referencedColumnName = "id"))
     private Set<Transport> transports = new HashSet<>();
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

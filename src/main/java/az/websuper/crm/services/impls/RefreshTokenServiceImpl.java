@@ -1,9 +1,11 @@
 package az.websuper.crm.services.impls;
 
 import az.websuper.crm.models.RefreshToken;
+import az.websuper.crm.models.User;
 import az.websuper.crm.repositories.RefreshTokenRepository;
 import az.websuper.crm.repositories.UserRepository;
 import az.websuper.crm.services.RefreshTokenService;
+import az.websuper.crm.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +30,20 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         return refreshTokenRepository.save(refreshToken);
     }
 
+    @Override
+    public boolean removeToken(String email) {
+        try {
+            User user = userRepository.findByEmail(email);
+            if (user != null){
+                RefreshToken refreshToken = refreshTokenRepository.findByUserId(user.getId()).orElseThrow();
+                refreshTokenRepository.delete(refreshToken);
+                return true;
+            }
+            return false;
+        }catch (Exception e){
+            return false;
+        }
+    }
 
 
     public Optional<RefreshToken> findByToken(String token){

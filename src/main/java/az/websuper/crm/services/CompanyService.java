@@ -5,4 +5,5 @@ import az.websuper.crm.models.Company;
 
 public interface CompanyService {
     Company createCompany(CompanyCreateDto companyCreateDto);
+    Company getCompanyById(Long id);
 }

@@ -1,6 +1,7 @@
 package az.websuper.crm.services.impls;
 
 import az.websuper.crm.dtos.auth.RegisterDto;
+import az.websuper.crm.dtos.auth.RegisterEmployeeDto;
 import az.websuper.crm.models.Company;
 import az.websuper.crm.models.User;
 import az.websuper.crm.repositories.CompanyRepository;
@@ -36,5 +37,20 @@ public class UserServiceImpl implements UserService {
         String password = passwordEncoder.encode(registerDto.getPassword());
         user.setPassword(password);
         userRepository.save(user);
+    }
+
+    @Override
+    public void registerEmployee(String adminEmail,RegisterEmployeeDto registerEmployeeDto) {
+        User findUserCompany = userRepository.findByEmail(adminEmail);
+        User user = modelMapper.map(registerEmployeeDto, User.class);
+        user.setCompany(findUserCompany.getCompany());
+        String password = passwordEncoder.encode(registerEmployeeDto.getPassword());
+        user.setPassword(password);
+        userRepository.save(user);
+    }
+
+    @Override
+    public User findByLoggedUser(String email) {
+        return userRepository.findByEmail(email);
     }
 }
