@@ -17,14 +17,16 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Long number;
+    @Enumerated(EnumType.ORDINAL)
     private OrderStatus orderStatus;
     private Date pickupDate;
     private Date deliveryDate;
     private String pickupAddress;
     private String deliveryAddress;
-    private float weight;
-    private float price;
-    private float tax;
+    private Long weight;
+    private Long price;
+    private Long tax;
+    private Boolean deleted;
     @ManyToOne
     private Customer customer;
     @ManyToOne

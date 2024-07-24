@@ -17,6 +17,7 @@ public class Transport {
     private Long id;
     private String registrationPlate;
     private TransportType transportType;
+    private Boolean deleted;
 
     @ManyToOne
     private Company company;
