@@ -12,6 +12,7 @@ public class Customer {
     private Long id;
     private String name;
     private String lastname;
+    private String phoneNumber;
     private String email;
     private Boolean deleted;
 

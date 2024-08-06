@@ -5,6 +5,7 @@ import az.websuper.crm.dtos.order.OrderCreateDto;
 import az.websuper.crm.dtos.order.OrderDto;
 import az.websuper.crm.dtos.order.OrderUpdateDto;
 import az.websuper.crm.enums.OrderStatus;
+import az.websuper.crm.messages.OrderStatusChangeMessages;
 import az.websuper.crm.models.Customer;
 import az.websuper.crm.models.Order;
 import az.websuper.crm.models.User;
@@ -14,7 +15,10 @@ import az.websuper.crm.repositories.CustomerRepository;
 import az.websuper.crm.repositories.OrderRepository;
 import az.websuper.crm.repositories.UserRepository;
 import az.websuper.crm.services.OrderService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.modelmapper.ModelMapper;
+import org.springframework.amqp.core.FanoutExchange;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,12 +36,19 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
     private final ModelMapper modelMapper;
+    private final RabbitTemplate rabbitTemplate;
+    private final FanoutExchange notificationFanoutExchange;
+    private final ObjectMapper objectMapper;
 
-    public OrderServiceImpl(OrderRepository orderRepository, UserRepository userRepository, CustomerRepository customerRepository, ModelMapper modelMapper) {
+
+    public OrderServiceImpl(OrderRepository orderRepository, UserRepository userRepository, CustomerRepository customerRepository, ModelMapper modelMapper, RabbitTemplate rabbitTemplate, FanoutExchange notificationFanoutExchange, ObjectMapper objectMapper) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.customerRepository = customerRepository;
         this.modelMapper = modelMapper;
+        this.rabbitTemplate = rabbitTemplate;
+        this.notificationFanoutExchange = notificationFanoutExchange;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -77,9 +88,18 @@ public class OrderServiceImpl implements OrderService {
         User findUserCompany = userRepository.findByEmail(userEmail);
         Customer customer = customerRepository.findById(orderCreateDto.getCustomerId()).orElseThrow();
         Order order = modelMapper.map(orderCreateDto,Order.class);
-        order.setEmployee(findUserCompany);
-        order.setDeliveryDate(new Date());
+        order.setNumber(12L);
+        order.setOrderStatus(OrderStatus.PENDING);
         order.setPickupDate(new Date());
+        order.setDeliveryDate(new Date());
+        order.setPickupAddress("Test");
+        order.setDeliveryAddress("Test");
+        order.setWeight(12L);
+        order.setPrice(12L);
+        order.setTax(12L);
+        order.setDeleted(false);
+        order.setEmployee(findUserCompany);
+        order.setDriver(findUserCompany);
         order.setCustomer(customer);
         order.setCompany(findUserCompany.getCompany());
         orderRepository.save(order);
@@ -103,6 +123,20 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public ApiResponse changeStatus(String userEmail, OrderChangeStatus orderChangeStatus) {
-        return null;
+        try {
+            User findUserCompany = userRepository.findByEmail(userEmail);
+            Order order = orderRepository.findByIdAndCompanyId(orderChangeStatus.getId(),findUserCompany.getId());
+            order.setOrderStatus(orderChangeStatus.getOrderStatus());
+            orderRepository.save(order);
+            Customer customer = order.getCustomer();
+            customer.setPhoneNumber("123456789");
+            OrderStatusChangeMessages orderStatusChangeMessages = new OrderStatusChangeMessages(order.getId(), customer.getName() + " " +customer.getLastname(),customer.getPhoneNumber(),customer.getEmail());
+            OrderStatusChangeMessages test = orderStatusChangeMessages;
+            String message = objectMapper.writeValueAsString(orderStatusChangeMessages);
+            rabbitTemplate.convertAndSend(notificationFanoutExchange.getName(),"",message);
+            return new ApiResponse("Melumat yenilendi",true);
+        }catch (Exception e){
+            return new ApiResponse(e.getMessage(),false);
+        }
     }
 }
