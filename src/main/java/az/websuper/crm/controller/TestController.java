@@ -28,4 +28,13 @@ public class TestController {
 
         return "Salam";
     }
+
+
+    @GetMapping("/auth")
+    @PreAuthorize("hasAnyAuthority('TEST','TESTS')")
+    public String testing(Principal principal){
+        String user = principal.getName();
+
+        return "Salam";
+    }
 }
