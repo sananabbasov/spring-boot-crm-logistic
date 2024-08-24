@@ -20,4 +20,12 @@ public class TestController {
 
         return "Salam";
     }
+
+    @GetMapping("/auth")
+    @PreAuthorize("hasAnyAuthority('TEST','TESTS')")
+    public String auth(Principal principal){
+        String user = principal.getName();
+
+        return "Salam";
+    }
 }
